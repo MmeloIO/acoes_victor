@@ -1,0 +1,594 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ARCA · Mercado de Ações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap">
+<style>
+/* Layout: mesma série visual do ARCA (navy + dourado, dark). Coluna de leitura; hero com o quadrado ARCA destacando o "A"; decodificador de ticker e simulador de proventos como peças interativas da reunião */
+:root{
+  color-scheme:dark;
+  --bg:#0A0C1A; --surface:#11152B; --surface-2:#161B36; --navy:#1E2761;
+  --line:rgba(201,168,76,.18); --line-soft:rgba(236,232,220,.08);
+  --ink:#ECE8DC; --muted:#9CA2BA; --gold:#C9A84C; --gold-soft:rgba(201,168,76,.14);
+  --q-r:#5BA8A0; --q-c:#9DB0E0; --q-i:#D08A6E;
+  --up:#7FBF8E; --down:#D9826F;
+  --display:'Playfair Display',Georgia,'Times New Roman',serif;
+  --body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'DM Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:88px}
+h1,h2,h3{font-family:var(--display);font-weight:700;text-wrap:balance;margin:0;line-height:1.15}
+h2{font-size:clamp(1.7rem,3.4vw,2.4rem)}
+h3{font-size:1.25rem}
+p{margin:0}
+.eyebrow{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:500}
+.lede{color:var(--muted);max-width:62ch;font-size:1.05rem}
+.sec-head{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.muted{color:var(--muted)}
+.note{color:var(--muted);font-size:.84rem;margin-top:14px;max-width:72ch}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;font-size:.85rem;color:var(--muted)}
+.top strong{color:var(--ink);font-weight:500}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:56px;align-items:center}
+.hero-text{display:flex;flex-direction:column;gap:22px;min-width:0}
+.hero h1{font-size:clamp(2.6rem,6vw,4.4rem)}
+.hero h1 em{font-style:italic;color:var(--gold);font-weight:500}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:6px;aspect-ratio:1;max-width:320px;width:100%;justify-self:end;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.mini div{border-radius:3px;background:var(--surface-2);display:flex;flex-direction:column;justify-content:space-between;padding:14px;position:relative;overflow:hidden}
+.mini div::before{content:"";position:absolute;inset:auto 0 0 0;height:3px;background:var(--c)}
+.mini b{font-family:var(--display);font-size:clamp(2.4rem,6vw,3.8rem);line-height:1;color:var(--c);font-weight:700}
+.mini span{font-size:.8rem;color:var(--muted)}
+.mini .on{background:var(--navy);outline:1px solid var(--gold)}
+.mini .on span{color:var(--ink)}
+.mini .off{opacity:.38}
+.series{display:flex;gap:10px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
+.series span{padding:4px 10px;border:1px solid var(--line-soft);border-radius:999px}
+.series .cur{border-color:var(--gold);color:var(--ink)}
+
+/* sócio */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.two > *{min-width:0}
+.prose{display:flex;flex-direction:column;gap:16px;max-width:60ch}
+.prose p{color:var(--ink)}
+.prose p.muted{color:var(--muted)}
+.pie{display:flex;flex-direction:column;gap:14px;padding:28px;background:var(--surface);border:1px solid var(--line-soft);border-radius:6px}
+.grid100{display:grid;grid-template-columns:repeat(20,1fr);gap:3px}
+.grid100 i{aspect-ratio:1;border-radius:1px;background:var(--line-soft)}
+.grid100 i.me{background:var(--gold)}
+.pie .cap{font-size:.88rem;color:var(--muted)}
+.pie .cap b{color:var(--gold);font-weight:500}
+
+/* ticker */
+.decoder{margin-top:40px;display:grid;grid-template-columns:300px 1fr;gap:32px;padding:32px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.decoder > *{min-width:0}
+.dec-in{display:flex;flex-direction:column;gap:12px}
+.dec-in label{font-size:.85rem;color:var(--muted)}
+.dec-in input{all:unset;font-family:var(--mono);font-size:1.6rem;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+.dec-in input:focus{border-color:var(--gold)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{all:unset;cursor:pointer;font-family:var(--mono);font-size:.82rem;padding:5px 10px;border:1px solid var(--line-soft);border-radius:999px;color:var(--muted)}
+.chip:hover,.chip:focus-visible{border-color:var(--gold);color:var(--ink)}
+.dec-out{display:flex;flex-direction:column;gap:18px}
+.code{display:flex;gap:4px;font-family:var(--mono);font-size:clamp(2.2rem,6vw,3.4rem);line-height:1;flex-wrap:wrap}
+.code .root{color:var(--ink);border-bottom:2px solid var(--muted);padding-bottom:6px}
+.code .num{color:var(--gold);border-bottom:2px solid var(--gold);padding-bottom:6px}
+.code .f{color:var(--q-c);border-bottom:2px solid var(--q-c);padding-bottom:6px}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px}
+.part{display:flex;flex-direction:column;gap:4px}
+.part h4{margin:0;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.part p{font-size:.95rem}
+.part b{font-weight:500}
+.types{margin-top:24px;overflow-x:auto;border:1px solid var(--line-soft);border-radius:6px}
+
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:.93rem}
+th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:top}
+thead th{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface)}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+tbody th{font-weight:500}
+td.m,th.m{font-family:var(--mono)}
+.tag{display:inline-block;font-size:.78rem;padding:2px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.tag.ok{color:var(--up)} .tag.tax{color:var(--gold)} .tag.warn{color:var(--down)}
+
+/* ordem */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-soft);border-radius:6px;overflow:hidden}
+.step{padding:26px 22px;display:flex;flex-direction:column;gap:10px;border-right:1px solid var(--line-soft);position:relative}
+.step:last-child{border-right:0}
+.step .k{font-family:var(--mono);font-size:.8rem;color:var(--gold)}
+.step h3{font-size:1.15rem}
+.step p{color:var(--muted);font-size:.93rem}
+.callout{margin-top:24px;display:flex;gap:18px;align-items:flex-start;padding:22px 24px;background:var(--gold-soft);border:1px solid var(--line);border-radius:6px}
+.callout b{font-family:var(--display);font-size:1.15rem;color:var(--gold);white-space:nowrap}
+.callout p{font-size:.97rem}
+
+/* ganhos */
+.ways{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.way{padding:28px;background:var(--surface);border:1px solid var(--line-soft);border-radius:6px;display:flex;flex-direction:column;gap:12px}
+.way .big{font-family:var(--display);font-size:2.4rem;color:var(--gold);line-height:1}
+.way ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;color:var(--ink);font-size:.95rem}
+.way ul b{font-weight:500}
+.timeline{margin-top:24px;padding:24px;border:1px solid var(--line-soft);border-radius:6px;overflow-x:auto}
+.timeline svg{display:block;min-width:560px;width:100%;height:auto}
+
+/* preço */
+.scale{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line-soft);border-radius:6px;overflow:hidden}
+.scale > div{padding:30px;display:flex;flex-direction:column;gap:12px}
+.scale > div + div{border-left:1px solid var(--line-soft);background:var(--navy)}
+.scale .k{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.scale > div + div .k{color:var(--gold)}
+.scale h3{font-size:1.5rem}
+.scale ul{margin:0;padding-left:18px;color:var(--muted);font-size:.95rem;display:flex;flex-direction:column;gap:4px}
+.scale > div + div ul{color:var(--ink)}
+.quote{margin-top:28px;font-family:var(--display);font-style:italic;font-size:1.35rem;color:var(--gold);max-width:48ch}
+.quote small{display:block;font-family:var(--body);font-style:normal;font-size:.82rem;color:var(--muted);margin-top:6px}
+
+/* simulador */
+.sim{display:grid;grid-template-columns:300px 1fr;gap:32px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:32px}
+.sim > *{min-width:0}
+.inputs{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.85rem;color:var(--muted)}
+.box{display:flex;align-items:center;border:1px solid var(--line-soft);border-radius:4px;background:var(--bg)}
+.box span{padding-inline:12px;color:var(--muted);font-size:.9rem}
+.box input{all:unset;flex:1;min-width:0;padding:11px 12px;font-variant-numeric:tabular-nums;font-size:1rem}
+.box:focus-within{border-color:var(--gold)}
+.ex{font-size:.78rem;color:var(--muted)}
+.result{display:flex;flex-direction:column;gap:22px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.kpi{display:flex;flex-direction:column;gap:4px;padding-top:12px;border-top:1px solid var(--line)}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.kpi b{font-family:var(--display);font-size:1.55rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi.hl b{color:var(--gold)}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:440px;height:auto}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend span{display:flex;gap:6px;align-items:center}
+.legend i{display:inline-block;width:14px;height:8px;border-radius:2px}
+
+/* carteira */
+.compare{overflow-x:auto;border:1px solid var(--line-soft);border-radius:6px}
+.crit{margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:28px 36px}
+.crit div{display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid var(--line)}
+.crit h3{font-size:1.1rem}
+.crit p{color:var(--muted);font-size:.94rem}
+
+/* regras */
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line-soft);border-radius:6px;overflow:hidden}
+.rule{padding:24px 26px;display:flex;gap:18px;border-bottom:1px solid var(--line-soft)}
+.rule:nth-child(odd){border-right:1px solid var(--line-soft)}
+.rule:nth-last-child(-n+2){border-bottom:0}
+.rule .x{font-family:var(--display);font-size:1.4rem;color:var(--down);line-height:1.2}
+.rule .y{color:var(--up)}
+.rule div{display:flex;flex-direction:column;gap:4px}
+.rule h3{font-size:1.05rem;font-family:var(--body);font-weight:700}
+.rule p{color:var(--muted);font-size:.93rem}
+
+/* glossário */
+.gsearch{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding-inline:14px;margin-bottom:18px;max-width:420px}
+.gsearch input{all:unset;flex:1;min-width:0;padding:12px 0}
+.gsearch:focus-within{border-color:var(--gold)}
+.gloss{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+details{border-bottom:1px solid var(--line-soft)}
+summary{cursor:pointer;list-style:none;padding:14px 0;display:flex;justify-content:space-between;gap:12px;font-weight:500}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--gold);font-family:var(--mono)}
+details[open] summary::after{content:"–"}
+summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+details p{padding-bottom:16px;color:var(--muted);font-size:.94rem}
+.empty{color:var(--muted);font-size:.92rem}
+
+footer{border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;font-size:.84rem;color:var(--muted)}
+footer .sig{display:flex;flex-direction:column;gap:2px}
+footer .sig b{font-family:var(--display);font-size:1.15rem;color:var(--ink)}
+footer .disc{max-width:62ch}
+.next{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:24px 28px;border:1px solid var(--line-soft);border-radius:6px;background:var(--surface)}
+.next b{font-family:var(--display);font-size:1.3rem}
+.next .r{color:var(--q-r)}
+
+@media (max-width:860px){
+  .hero,.two,.decoder,.sim,.ways,.scale{grid-template-columns:1fr}
+  .mini{justify-self:start;max-width:240px}
+  .flow{grid-template-columns:1fr 1fr}
+  .step:nth-child(2){border-right:0}
+  .step:nth-child(-n+2){border-bottom:1px solid var(--line-soft)}
+  .scale > div + div{border-left:0;border-top:1px solid var(--line-soft)}
+  .crit{grid-template-columns:1fr 1fr}
+  .decoder,.sim{padding:22px}
+}
+@media (max-width:560px){
+  .wrap{gap:64px}
+  .flow,.rules,.gloss,.crit{grid-template-columns:1fr}
+  .step{border-right:0!important;border-bottom:1px solid var(--line-soft)}
+  .step:last-child{border-bottom:0}
+  .rule:nth-child(odd){border-right:0}
+  .rule:nth-last-child(2){border-bottom:1px solid var(--line-soft)}
+  .kpis{grid-template-columns:1fr}
+  .callout{flex-direction:column;gap:6px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <span><strong>Matheus Melo</strong> · Financial Advisor Master</span>
+    <span>Grão | Grupo Primo</span>
+  </div>
+
+  <header class="hero">
+    <div class="hero-text">
+      <span class="eyebrow">Série ARCA · Quadrante 1 de 4</span>
+      <h1>Mercado de <em>Ações</em></h1>
+      <p class="lede">Ações são o motor de crescimento da carteira. Este material explica o que você compra quando investe em uma ação, como a bolsa funciona, de onde vem o retorno e como esse quadrante entra na sua estratégia.</p>
+      <div class="series">
+        <span class="cur">A · Ações</span><span>R · Real Estate</span><span>C · Caixa</span><span>A · Internacional</span>
+      </div>
+    </div>
+    <div class="mini" aria-hidden="true">
+      <div class="on" style="--c:var(--gold)"><span>Você está aqui</span><b>A</b></div>
+      <div class="off" style="--c:var(--q-r)"><span>Real Estate</span><b>R</b></div>
+      <div class="off" style="--c:var(--q-c)"><span>Caixa</span><b>C</b></div>
+      <div class="off" style="--c:var(--q-i)"><span>Internacional</span><b>A</b></div>
+    </div>
+  </header>
+
+  <!-- 1. O que é -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">O que você compra</span>
+      <h2>Uma ação é um pedaço de uma empresa</h2>
+    </div>
+    <div class="two">
+      <div class="prose">
+        <p>Quando uma empresa abre capital na bolsa, ela divide sua propriedade em milhões de partes iguais. Cada parte é uma ação. Quem compra uma ação vira sócio daquela empresa, na proporção do que tem.</p>
+        <p>Ser sócio significa participar do resultado. Se a empresa cresce e lucra mais, a sua parte passa a valer mais. Quando ela distribui lucro, uma fatia cai na sua conta.</p>
+        <p class="muted">A diferença para abrir um negócio próprio é que você não precisa administrar nada, pode começar com pouco dinheiro e pode vender a sua parte em qualquer dia útil.</p>
+      </div>
+      <div class="pie">
+        <div class="grid100" id="grid100" aria-label="Ilustração: uma empresa dividida em partes, com uma parte destacada"></div>
+        <p class="cap">Cada quadrado é uma parte da empresa. O <b>dourado</b> é a sua. Na prática uma empresa listada tem milhões ou bilhões de ações, e a sua fatia é proporcional ao que você comprou.</p>
+      </div>
+    </div>
+
+    <div class="decoder">
+      <div class="dec-in">
+        <label for="tk">Digite um código de negociação (ticker)</label>
+        <input id="tk" value="PETR4" maxlength="7" spellcheck="false" autocomplete="off">
+        <div class="chips" id="chips"></div>
+        <span class="ex">Exemplos apenas para ler o código. Não são recomendações.</span>
+      </div>
+      <div class="dec-out" aria-live="polite">
+        <div class="code" id="code"></div>
+        <div class="parts" id="parts"></div>
+      </div>
+    </div>
+
+    <div class="types">
+      <table>
+        <thead><tr><th>Final</th><th>Tipo</th><th>O que significa</th></tr></thead>
+        <tbody>
+          <tr><td class="m">3</td><th>Ordinária (ON)</th><td>Dá direito a voto nas assembleias. No Novo Mercado, as empresas só podem ter ações ON.</td></tr>
+          <tr><td class="m">4, 5, 6</td><th>Preferencial (PN)</th><td>Normalmente sem voto, mas com preferência no recebimento de proventos.</td></tr>
+          <tr><td class="m">11</td><th>Unit, ETF ou FII</th><td>Pacote de ações (unit), fundo de índice (ETF) ou fundo imobiliário. É preciso olhar o nome para saber qual.</td></tr>
+          <tr><td class="m">F no fim</td><th>Fracionário</th><td>Compra de 1 a 99 unidades. O lote padrão é de 100 ações. Ex.: PETR4F.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2. Como funciona -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Como a bolsa funciona</span>
+      <h2>O caminho de uma compra de ações</h2>
+      <p class="lede">A bolsa é um mercado onde quem quer comprar encontra quem quer vender. No Brasil existe uma só: a B3, em São Paulo.</p>
+    </div>
+    <div class="flow">
+      <div class="step"><span class="k">1 · Você</span><h3>Envia a ordem</h3><p>Pelo aplicativo ou home broker da corretora, você informa o ticker, a quantidade e o preço que aceita pagar.</p></div>
+      <div class="step"><span class="k">2 · Corretora</span><h3>Leva a ordem à B3</h3><p>A corretora é a ponte entre você e a bolsa. Pessoa física não negocia direto na B3.</p></div>
+      <div class="step"><span class="k">3 · B3</span><h3>Encontra um vendedor</h3><p>O livro de ofertas cruza o seu preço com o de quem quer vender. Quando os preços batem, o negócio fecha.</p></div>
+      <div class="step"><span class="k">4 · D+2</span><h3>Liquidação</h3><p>Dois dias úteis depois, o dinheiro sai da sua conta e as ações passam para o seu nome.</p></div>
+    </div>
+    <div class="callout">
+      <b>Segurança</b>
+      <p>As ações ficam registradas no seu CPF na central depositária da B3, e não no balanço da corretora. Você pode conferir tudo na Área do Investidor da B3. Se a corretora tiver problemas, as ações continuam sendo suas.</p>
+    </div>
+  </section>
+
+  <!-- 3. Como ganha -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">De onde vem o retorno</span>
+      <h2>Duas formas de ganhar com ações</h2>
+    </div>
+    <div class="ways">
+      <div class="way">
+        <span class="big">↗</span>
+        <h3>Valorização</h3>
+        <p class="muted">A empresa cresce, lucra mais e a ação passa a valer mais. O ganho só se concretiza quando você vende, mas o patrimônio já cresce enquanto você mantém.</p>
+        <ul><li>É o ganho mais relevante no longo prazo</li><li>Depende do lucro futuro da empresa</li><li>Oscila bastante no curto prazo</li></ul>
+      </div>
+      <div class="way">
+        <span class="big">R$</span>
+        <h3>Proventos</h3>
+        <p class="muted">Parte do lucro distribuída aos sócios, depositada direto na conta da corretora.</p>
+        <ul><li><b>Dividendos:</b> parcela do lucro paga aos acionistas</li><li><b>JCP:</b> juros sobre capital próprio, outra forma de distribuir lucro, com imposto retido</li><li>Pela lei, as empresas distribuem ao menos 25% do lucro ajustado, salvo regra diferente no estatuto</li></ul>
+      </div>
+    </div>
+    <div class="timeline" aria-label="Linha do tempo de um dividendo">
+      <svg viewBox="0 0 720 150" role="img" aria-labelledby="tlt">
+        <title id="tlt">Linha do tempo de um provento: anúncio, data com, data ex e pagamento</title>
+        <line x1="40" y1="70" x2="680" y2="70" stroke="var(--line)" stroke-width="2"/>
+        <g font-family="DM Sans, system-ui, sans-serif">
+          <circle cx="60" cy="70" r="7" fill="var(--muted)"/>
+          <text x="60" y="44" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="500">Anúncio</text>
+          <text x="60" y="100" text-anchor="middle" fill="var(--muted)" font-size="12.5">empresa divulga</text>
+          <text x="60" y="117" text-anchor="middle" fill="var(--muted)" font-size="12.5">valor e datas</text>
+
+          <circle cx="260" cy="70" r="9" fill="var(--gold)"/>
+          <text x="260" y="44" text-anchor="middle" fill="var(--gold)" font-size="15" font-weight="500">Data com</text>
+          <text x="260" y="100" text-anchor="middle" fill="var(--muted)" font-size="12.5">quem tem a ação no fim</text>
+          <text x="260" y="117" text-anchor="middle" fill="var(--muted)" font-size="12.5">deste dia tem direito</text>
+
+          <circle cx="440" cy="70" r="7" fill="var(--muted)"/>
+          <text x="440" y="44" text-anchor="middle" fill="var(--ink)" font-size="15" font-weight="500">Data ex</text>
+          <text x="440" y="100" text-anchor="middle" fill="var(--muted)" font-size="12.5">a ação passa a ser</text>
+          <text x="440" y="117" text-anchor="middle" fill="var(--muted)" font-size="12.5">negociada sem o direito</text>
+
+          <circle cx="640" cy="70" r="9" fill="var(--up)"/>
+          <text x="640" y="44" text-anchor="middle" fill="var(--up)" font-size="15" font-weight="500">Pagamento</text>
+          <text x="640" y="100" text-anchor="middle" fill="var(--muted)" font-size="12.5">dinheiro cai na</text>
+          <text x="640" y="117" text-anchor="middle" fill="var(--muted)" font-size="12.5">conta da corretora</text>
+        </g>
+      </svg>
+    </div>
+    <p class="note">Na data ex, o preço da ação costuma cair perto do valor do provento. Por isso comprar na véspera só para receber o dividendo não gera ganho extra.</p>
+  </section>
+
+  <!-- 4. O que move o preço -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">O que move o preço</span>
+      <h2>No curto prazo, notícias. No longo prazo, lucro.</h2>
+      <p class="lede">O preço de uma ação muda a cada segundo do pregão. Entender o motivo ajuda a não tomar decisões no susto.</p>
+    </div>
+    <div class="scale">
+      <div>
+        <span class="k">Dias e meses</span>
+        <h3>Humor do mercado</h3>
+        <ul><li>Notícias, eleições e decisões de juros</li><li>Medo e euforia dos investidores</li><li>Fluxo de dinheiro estrangeiro entrando e saindo</li><li>Movimentos difíceis de prever, inclusive para profissionais</li></ul>
+      </div>
+      <div>
+        <span class="k">Anos</span>
+        <h3>Resultado da empresa</h3>
+        <ul><li>Crescimento das receitas e do lucro</li><li>Qualidade da gestão e da governança</li><li>Vantagens competitivas que se sustentam</li><li>Dividendos pagos e reinvestidos ao longo do tempo</li></ul>
+      </div>
+    </div>
+    <p class="quote">"No curto prazo, o mercado é uma máquina de votação. No longo prazo, é uma balança."<small>Benjamin Graham, professor e mentor de Warren Buffett</small></p>
+  </section>
+
+  <!-- 5. Simulador -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">O efeito bola de neve</span>
+      <h2>Proventos reinvestidos compram mais ações</h2>
+      <p class="lede">Mais ações pagam mais proventos, que compram mais ações. A simulação abaixo é conservadora: considera só os aportes e os proventos reinvestidos, sem nenhuma valorização das ações.</p>
+    </div>
+    <div class="sim">
+      <form class="inputs" id="simf" autocomplete="off">
+        <div class="field"><label for="s0">Valor que já tem em ações</label><div class="box"><span>R$</span><input id="s0" inputmode="decimal" value="20.000"></div></div>
+        <div class="field"><label for="s1">Aporte mensal em ações</label><div class="box"><span>R$</span><input id="s1" inputmode="decimal" value="1.000"></div></div>
+        <div class="field"><label for="s2">Proventos ao ano (dividend yield)</label><div class="box"><input id="s2" inputmode="decimal" value="6"><span>% a.a.</span></div></div>
+        <div class="field"><label for="s3">Prazo</label><div class="box"><input id="s3" inputmode="numeric" value="15"><span>anos</span></div></div>
+        <span class="ex">Valores de exemplo. Ajuste com os números do cliente. Um yield de 6% é apenas hipotético; ele varia de empresa para empresa e de ano para ano.</span>
+      </form>
+      <div class="result">
+        <div class="kpis">
+          <div class="kpi"><span>Patrimônio em ações</span><b id="k0">—</b></div>
+          <div class="kpi"><span>Proventos recebidos no período</span><b id="k1">—</b></div>
+          <div class="kpi hl"><span>Renda mensal no último ano</span><b id="k2">—</b></div>
+        </div>
+        <div class="chart" id="chart"></div>
+        <div class="legend">
+          <span><i style="background:var(--navy);outline:1px solid var(--muted)"></i>Dinheiro que você aportou</span>
+          <span><i style="background:var(--gold)"></i>Proventos reinvestidos</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">Simulação educativa, sem impostos, custos ou valorização das ações. Não é promessa de retorno. Rentabilidade passada não garante rentabilidade futura.</p>
+  </section>
+
+  <!-- 6. Na carteira -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Como esse quadrante entra na sua carteira</span>
+      <h2>Ações individuais ou ETFs</h2>
+      <p class="lede">Existem dois caminhos para montar o quadrante de Ações. Eles podem ser combinados, e a escolha depende do seu perfil e do tempo que você quer dedicar.</p>
+    </div>
+    <div class="compare">
+      <table>
+        <thead><tr><th></th><th>Ações individuais</th><th>ETFs de ações</th></tr></thead>
+        <tbody>
+          <tr><th>O que é</th><td>Você escolhe cada empresa da carteira</td><td>Um fundo negociado na bolsa que compra uma cesta de ações, seguindo um índice</td></tr>
+          <tr><th>Diversificação</th><td>Depende de quantas empresas você tem</td><td>Imediata: uma cota já carrega dezenas de empresas</td></tr>
+          <tr><th>Proventos</th><td>Caem direto na sua conta</td><td>Em geral reinvestidos pelo próprio fundo; alguns ETFs distribuem</td></tr>
+          <tr><th>Custo</th><td>Sem taxa de administração</td><td>Taxa de administração anual, normalmente baixa</td></tr>
+          <tr><th>Acompanhamento</th><td>Maior: resultados, notícias, governança</td><td>Menor: segue o índice</td></tr>
+          <tr><th>Imposto na venda</th><td>Isenção para vendas até R$ 20 mil no mês</td><td>Sem essa isenção</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="crit">
+      <div><h3>Lucro consistente</h3><p>Empresas que lucram há muitos anos, inclusive nas crises, e não só em um ciclo favorável.</p></div>
+      <div><h3>Dívida sob controle</h3><p>Endividamento compatível com a geração de caixa. Empresa muito endividada sofre quando os juros sobem.</p></div>
+      <div><h3>Setores perenes</h3><p>Energia, saneamento, bancos e seguros vendem serviços que as pessoas usam em qualquer cenário.</p></div>
+      <div><h3>Boa governança</h3><p>Preferência por empresas do Novo Mercado, o nível mais exigente de transparência e direitos do acionista na B3.</p></div>
+      <div><h3>Preço justo</h3><p>Uma ótima empresa comprada muito cara pode virar um investimento ruim. Indicadores como P/L ajudam nessa leitura.</p></div>
+      <div><h3>Diversificação</h3><p>Várias empresas e setores diferentes. Nenhuma posição sozinha deve comprometer o quadrante.</p></div>
+    </div>
+  </section>
+
+  <!-- 7. Impostos -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Tributação</span>
+      <h2>Como o imposto funciona em ações</h2>
+      <p class="lede">O imposto sobre ganho de capital é calculado e pago pelo próprio investidor, via DARF, até o último dia útil do mês seguinte à venda com lucro.</p>
+    </div>
+    <div class="compare">
+      <table>
+        <thead><tr><th>Situação</th><th>Regra</th><th>Imposto</th></tr></thead>
+        <tbody>
+          <tr><th>Vendas de ações até R$ 20 mil no mês</th><td>Soma de todas as vendas de ações no mercado à vista no mês, não só o lucro</td><td><span class="tag ok">Isento</span></td></tr>
+          <tr><th>Vendas acima de R$ 20 mil no mês, com lucro</th><td>Operações comuns (swing trade)</td><td><span class="tag tax">15% sobre o lucro</span></td></tr>
+          <tr><th>ETFs de ações</th><td>Não entram na isenção dos R$ 20 mil</td><td><span class="tag tax">15% sobre o lucro</span></td></tr>
+          <tr><th>Day trade</th><td>Compra e venda no mesmo dia</td><td><span class="tag warn">20% sobre o lucro</span></td></tr>
+          <tr><th>Dividendos</th><td>Isentos até R$ 50 mil por mês da mesma empresa. Acima disso, retenção de 10% na fonte, regra em vigor desde 2026</td><td><span class="tag ok">Isento na maioria dos casos</span></td></tr>
+          <tr><th>JCP</th><td>Imposto retido na fonte pela empresa. Você já recebe o valor líquido</td><td><span class="tag tax">17,5% na fonte</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Prejuízos em vendas podem ser abatidos de lucros futuros do mesmo tipo de operação. Contribuintes de renda muito alta podem ter ajuste no imposto mínimo da declaração anual. Regras vigentes em novembro de 2026; a legislação muda, e confirmamos a situação de cada caso na hora de vender.</p>
+  </section>
+
+  <!-- 8. Regras -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Erros comuns</span>
+      <h2>O que costuma atrapalhar o investidor em ações</h2>
+    </div>
+    <div class="rules">
+      <div class="rule"><span class="x">×</span><div><h3>Vender na queda por medo</h3><p>Transforma uma oscilação temporária em prejuízo definitivo. Quedas fazem parte do caminho.</p></div></div>
+      <div class="rule"><span class="x">×</span><div><h3>Seguir dicas e modismos</h3><p>Ação que "todo mundo está comprando" muitas vezes já subiu demais.</p></div></div>
+      <div class="rule"><span class="x">×</span><div><h3>Concentrar em poucas empresas</h3><p>Um problema isolado em uma companhia não pode afetar o seu plano inteiro.</p></div></div>
+      <div class="rule"><span class="x">×</span><div><h3>Usar dinheiro de curto prazo</h3><p>Ações são para objetivos acima de 5 anos. Reserva de emergência fica fora da bolsa.</p></div></div>
+      <div class="rule"><span class="x y">✓</span><div><h3>Aportar com constância</h3><p>Comprar todo mês, em alta ou em baixa, suaviza o preço médio ao longo do tempo.</p></div></div>
+      <div class="rule"><span class="x y">✓</span><div><h3>Respeitar os 25% do ARCA</h3><p>Se Ações caiu e ficou abaixo de 25%, o aporte vai para lá. A regra decide por você.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 9. Glossário -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Glossário</span>
+      <h2>Termos que você vai ouvir</h2>
+    </div>
+    <label class="gsearch" for="gq"><span class="muted">Buscar</span><input id="gq" placeholder="ex.: dividend yield" autocomplete="off"></label>
+    <div class="gloss" id="gloss"></div>
+    <p class="empty" id="gempty" hidden>Nenhum termo encontrado. Tente outra palavra.</p>
+  </section>
+
+  <div class="next">
+    <div><span class="eyebrow">Próximo da série</span><br><b><span class="r">R</span> · Real Estate: fundos imobiliários</b></div>
+    <span class="muted">Renda recorrente com imóveis, sem comprar um imóvel.</span>
+  </div>
+
+  <footer>
+    <div class="sig"><b>Matheus Melo</b><span>Financial Advisor Master · Grão | Grupo Primo</span></div>
+    <p class="disc">Material educativo, preparado para apoiar a conversa em reunião. Os códigos citados servem apenas como exemplo de leitura e não são recomendação de compra ou venda. Rentabilidade passada não garante rentabilidade futura.</p>
+  </footer>
+</div>
+
+<script>
+/* grade 100 */
+(function(){const g=document.getElementById('grid100');let h='';for(let i=0;i<100;i++)h+='<i'+(i===37?' class="me"':'')+'></i>';g.innerHTML=h})();
+
+/* decodificador de ticker */
+const KNOWN={PETR:'Petrobras',VALE:'Vale',ITUB:'Itaú Unibanco',BBAS:'Banco do Brasil',TAEE:'Taesa',SAPR:'Sanepar',BBSE:'BB Seguridade',WEGE:'WEG',BOVA:'ETF que segue o Ibovespa',EGIE:'Engie Brasil'};
+const EX=['PETR4','VALE3','TAEE11','BOVA11','ITUB4F'];
+const TYPES={
+  '3':['Ordinária (ON)','Dá direito a voto nas assembleias da empresa.'],
+  '4':['Preferencial (PN)','Sem voto, com preferência no recebimento de proventos.'],
+  '5':['Preferencial classe A (PNA)','Uma classe de preferencial, com direitos definidos no estatuto.'],
+  '6':['Preferencial classe B (PNB)','Outra classe de preferencial, com direitos definidos no estatuto.'],
+  '11':['Unit, ETF ou FII','Pode ser um pacote de ações da mesma empresa, um fundo de índice ou um fundo imobiliário.']
+};
+const tk=document.getElementById('tk'),chips=document.getElementById('chips');
+EX.forEach(e=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=e;b.onclick=()=>{tk.value=e;decode()};chips.appendChild(b)});
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function decode(){
+  const v=tk.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const m=v.match(/^([A-Z]{4})(\d{1,2})(F?)$/);
+  const code=document.getElementById('code'),parts=document.getElementById('parts');
+  if(!m){code.innerHTML='<span class="root">'+esc(v||'····')+'</span>';parts.innerHTML='<div class="part"><h4>Formato</h4><p>Um ticker de ação tem 4 letras e 1 ou 2 números, como PETR4 ou TAEE11. Pode terminar com F no mercado fracionário.</p></div>';return}
+  const [,root,num,f]=m;
+  code.innerHTML='<span class="root">'+root+'</span><span class="num">'+num+'</span>'+(f?'<span class="f">F</span>':'');
+  const t=TYPES[num]||['Outro tipo','Números como 1, 2, 7 ou 8 indicam direitos e recibos de subscrição, usados em situações específicas.'];
+  let h='<div class="part"><h4>'+root+' · empresa ou fundo</h4><p>'+(KNOWN[root]?'<b>'+KNOWN[root]+'</b>':'As 4 letras identificam o emissor')+'</p></div>';
+  h+='<div class="part"><h4>'+num+' · tipo</h4><p><b>'+t[0]+'.</b> '+t[1]+'</p></div>';
+  h+='<div class="part"><h4>'+(f?'F · mercado':'Lote')+'</h4><p>'+(f?'<b>Fracionário.</b> Compra de 1 a 99 unidades.':'<b>Lote padrão</b> de 100 unidades. Para menos, use o mesmo código com F no fim.')+'</p></div>';
+  parts.innerHTML=h;
+}
+tk.addEventListener('input',decode);decode();
+
+/* simulador de proventos */
+const brl=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const brlK=x=>x>=1e6?'R$ '+(x/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mi':x>=1e3?'R$ '+Math.round(x/1e3).toLocaleString('pt-BR')+' mil':'R$ '+Math.round(x);
+function n(id){const s=document.getElementById(id).value.replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,'');const v=parseFloat(s);return isFinite(v)&&v>0?v:0}
+function sim(){
+  const P0=n('s0'),A=n('s1'),y=Math.min(n('s2'),30)/100,Y=Math.max(1,Math.min(Math.round(n('s3'))||1,40));
+  const rm=Math.pow(1+y,1/12)-1;
+  let bal=P0,contrib=P0,div=0,lastYearDiv=0;const rows=[];
+  for(let yr=1;yr<=Y;yr++){
+    let d=0;
+    for(let mth=0;mth<12;mth++){const pv=bal*rm;d+=pv;bal+=pv+A;contrib+=A}
+    div+=d;lastYearDiv=d;rows.push({yr,contrib,div,bal});
+  }
+  document.getElementById('k0').textContent=brl.format(bal);
+  document.getElementById('k1').textContent=brl.format(div);
+  document.getElementById('k2').textContent=brl.format(lastYearDiv/12);
+  // gráfico
+  const W=640,H=260,pl=64,pr=12,pt=14,pb=34,iw=W-pl-pr,ih=H-pt-pb;
+  const max=Math.max(...rows.map(r=>r.bal),1);
+  const step=Math.pow(10,Math.floor(Math.log10(max)));let tick=step;
+  for(const m of [1,2,2.5,5,10]){if(max/(step*m)<=5){tick=step*m;break}}
+  const top=Math.ceil(max/tick)*tick,sc=v=>pt+ih-(v/top)*ih;
+  const bw=iw/rows.length,gap=Math.min(6,bw*.25);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Evolução anual do patrimônio em ações, separando aportes e proventos reinvestidos"><g font-family="DM Sans, system-ui, sans-serif" font-size="11.5">';
+  for(let v=0;v<=top+1e-6;v+=tick){const yy=sc(v);s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'" stroke="var(--line-soft)"/><text x="'+(pl-8)+'" y="'+(yy+4)+'" text-anchor="end" fill="var(--muted)">'+(v===0?'0':brlK(v))+'</text>'}
+  const every=rows.length>20?5:rows.length>10?2:1;
+  rows.forEach((r,i)=>{
+    const x=pl+i*bw+gap/2,w=bw-gap,yc=sc(r.contrib),yb=sc(r.bal);
+    s+='<rect x="'+x+'" y="'+yc+'" width="'+w+'" height="'+(pt+ih-yc)+'" fill="var(--navy)" stroke="var(--muted)" stroke-opacity=".35"/>';
+    if(r.bal>r.contrib)s+='<rect x="'+x+'" y="'+yb+'" width="'+w+'" height="'+(yc-yb)+'" fill="var(--gold)"/>';
+    if((r.yr%every===0)||r.yr===1)s+='<text x="'+(x+w/2)+'" y="'+(H-12)+'" text-anchor="middle" fill="var(--muted)">'+r.yr+'</text>';
+  });
+  s+='<text x="'+(W-pr)+'" y="'+(H-0)+'" text-anchor="end" fill="var(--muted)" font-size="10.5">ano</text></g></svg>';
+  document.getElementById('chart').innerHTML=s;
+}
+const sf=document.getElementById('simf');sf.addEventListener('input',sim);sf.addEventListener('submit',e=>e.preventDefault());sim();
+
+/* glossário */
+const G=[
+ ['Ibovespa','Principal índice da bolsa brasileira. Reúne as ações mais negociadas da B3 e serve de termômetro do mercado.'],
+ ['Ticker','Código de negociação de um ativo na bolsa, como PETR4 ou TAEE11.'],
+ ['Home broker','Plataforma da corretora, no site ou aplicativo, onde você envia ordens de compra e venda.'],
+ ['Pregão','Período do dia em que a bolsa está aberta para negociações.'],
+ ['Livro de ofertas','Lista em tempo real das ordens de compra e venda de um ativo, com preços e quantidades.'],
+ ['Lote padrão','Quantidade mínima no mercado à vista: 100 ações. Abaixo disso, usa-se o fracionário.'],
+ ['Mercado fracionário','Onde se negociam de 1 a 99 ações. O ticker ganha um F no final.'],
+ ['Proventos','Tudo o que a empresa distribui aos acionistas, como dividendos e JCP.'],
+ ['Data com','Último dia em que quem tem a ação garante o direito a um provento já anunciado.'],
+ ['Data ex','Primeiro dia em que a ação é negociada sem o direito ao provento anunciado.'],
+ ['Dividend yield','Proventos pagos em 12 meses divididos pelo preço da ação. Mostra o retorno em renda, em %.'],
+ ['P/L','Preço dividido pelo lucro por ação. Indica quantos anos de lucro atual o preço representa.'],
+ ['IPO','Oferta pública inicial: quando a empresa abre capital e vende ações na bolsa pela primeira vez.'],
+ ['Novo Mercado','Segmento da B3 com as regras mais rígidas de governança. Só admite ações ordinárias.'],
+ ['Custódia','Guarda das ações em nome do investidor, feita pela central depositária da B3.'],
+ ['Volatilidade','Intensidade com que o preço oscila. Ações são mais voláteis que renda fixa.'],
+ ['Preço médio','Média ponderada do que você pagou pelas suas ações. É a base para calcular o lucro na venda.'],
+ ['Blue chips','Ações de empresas grandes, consolidadas e com alto volume de negociação.']
+];
+const gl=document.getElementById('gloss'),ge=document.getElementById('gempty');
+function norm(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()}
+function renderG(q){
+  const f=G.filter(([t,d])=>!q||norm(t+' '+d).includes(norm(q)));
+  gl.innerHTML=f.map(([t,d])=>'<details'+(q?' open':'')+'><summary>'+t+'</summary><p>'+d+'</p></details>').join('');
+  ge.hidden=f.length>0;
+}
+document.getElementById('gq').addEventListener('input',e=>renderG(e.target.value.trim()));renderG('');
+</script>
+
+</body></html>
